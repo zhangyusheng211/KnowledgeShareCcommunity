@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.xo.mapper.CreditsLogMapper">
+    <insert id="addCreditsLog">
+
+        SET
+        @credits = ( SELECT credits FROM t_user WHERE uid =
+        #{creditsLogVO.userUid}
+        );
+        INSERT INTO t_credits_log (uid, user_uid, user_name, resource_uid, action_code, action_name, old_credits,
+                                   new_credits, STATUS, create_time, update_time, change_credits)
+        VALUES (REPLACE(UUID(), '-', ''),
+                #{creditsLogVO.userUid},
+                #{creditsLogVO.userName},
+                #{creditsLogVO.resourceUid},
+                #{creditsLogVO.actionCode},
+                #{creditsLogVO.actionName},
+                @credits,
+                @credits + #{creditsLogVO.changeCredits},
+                1,
+                #{creditsLogVO.createTime},
+                #{creditsLogVO.createTime},
+                #{creditsLogVO.changeCredits})
+
+
+    </insert>
+
+    <select id="queryList" resultType="com.moxi.mogublog.commons.vo.CreditsLogVO">
+        select *
+        from t_credits_log
+        where user_uid = #{userUid}
+        order by create_time desc
+    </select>
+    <select id="queryCredits" resultType="com.moxi.mogublog.commons.vo.CreditsLogVO">
+        SELECT 'blog'                                                                    AS resource_type,
+               2                                                                         as action_code,
+               t_blog.title                                                              as title,
+               '创作文章'                                                                as action_name,
+               t_blog.uid                                                                as resource_uid,
+               t_credits_log.create_time,
+               IF(t_credits_log.change_credits IS NULL, 0, t_credits_log.change_credits) AS change_credits,
+               IF(t_credits_log.change_credits IS NULL, '未发放', '已发放')              AS hasGet
+        FROM t_blog
+                 LEFT JOIN t_credits_log ON t_blog.uid = t_credits_log.resource_uid
+            AND t_credits_log.user_uid = t_blog.user_uid
+            AND (t_credits_log.action_code = 2 or t_credits_log.action_code = -1)
+        where t_blog.user_uid = #{userUid}
+          and t_blog.audit_status = 2
+          and t_blog.is_publish = 1
+          and t_blog.status = 1
+
+        UNION all
+        SELECT 'question'                                                                AS resource_type,
+               3                                                                         as action_code,
+               t_question.title                                                          as title,
+               '发起问答'                                                                as action_name,
+               t_question.uid                                                            as resource_uid,
+               t_credits_log.create_time,
+               IF(t_credits_log.change_credits IS NULL, 0, t_credits_log.change_credits) AS change_credits,
+               IF(t_credits_log.change_credits IS NULL, '未发放', '已发放')              AS hasGet
+        FROM t_question
+                 LEFT JOIN t_credits_log ON t_question.uid = t_credits_log.resource_uid
+            AND t_credits_log.user_uid = t_question.user_uid
+            AND (t_credits_log.action_code = 3 or t_credits_log.action_code = -1)
+        where t_question.user_uid = #{userUid}
+          and t_question.status = 1
+          and t_question.is_publish = 1
+        UNION all
+        SELECT 'comment'                                                                 AS resource_type,
+               4                                                                         as action_code,
+               t_comment.content                                                         as title,
+               '参与评论'                                                                as action_name,
+               t_comment.uid                                                             as resource_uid,
+               t_credits_log.create_time,
+               IF(t_credits_log.change_credits IS NULL, 0, t_credits_log.change_credits) AS change_credits,
+               IF(t_credits_log.change_credits IS NULL, '未发放', '已发放')              AS hasGet
+        FROM t_comment
+                 LEFT JOIN t_credits_log ON t_comment.uid = t_credits_log.resource_uid
+            AND t_credits_log.user_uid = t_comment.user_uid
+            AND (t_credits_log.action_code = 4 or t_credits_log.action_code = -1)
+        where t_comment.user_uid = #{userUid}
+          and t_comment.status = 1
+        UNION all
+        SELECT 'moment'                                                                  AS resource_type,
+               5                                                                         as action_code,
+               t_user_moment.content                                                     as title,
+               '发表动态'                                                                as action_name,
+               t_user_moment.uid                                                         as resource_uid,
+               t_credits_log.create_time,
+               IF(t_credits_log.change_credits IS NULL, 0, t_credits_log.change_credits) AS change_credits,
+               IF(t_credits_log.change_credits IS NULL, '未发放', '已发放')              AS hasGet
+        FROM t_user_moment
+                 LEFT JOIN t_credits_log ON t_user_moment.uid = t_credits_log.resource_uid
+            AND t_credits_log.user_uid = t_user_moment.user_uid
+            AND (t_credits_log.action_code = 5 or t_credits_log.action_code = -1)
+        where t_user_moment.user_uid = #{userUid}
+          and t_user_moment.status = 1
+
+    </select>
+    <select id="queryCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT( 1 )
+        FROM
+        t_credits_log
+        WHERE
+        user_uid = #{userUid}
+        AND (
+        ( action_code = #{actionCode} AND DATE_FORMAT( create_time, '%Y-%m-%d' ) = #{day} )
+
+        <if test='actionCode == "2"'>
+            OR ( action_code = '-1' AND resource_uid IN ( SELECT uid FROM t_blog WHERE user_uid = #{userUid} AND
+            DATE_FORMAT( audit_time, '%Y-%m-%d' ) = #{day} ) )
+        </if>
+        <if test='actionCode == "3"'>
+            OR ( action_code = '-1' AND resource_uid IN ( SELECT uid FROM t_question WHERE user_uid = #{userUid} AND
+            DATE_FORMAT( create_time, '%Y-%m-%d' ) = #{day} ) )
+        </if>
+        <if test='actionCode == "4"'>
+            OR ( action_code = '-1' AND resource_uid IN ( SELECT uid FROM t_comment WHERE user_uid = #{userUid} AND
+            DATE_FORMAT( create_time, '%Y-%m-%d' ) = #{day} ) )
+        </if>
+        <if test='actionCode == "5"'>
+            OR ( action_code = '-1' AND resource_uid IN ( SELECT uid FROM t_user_moment WHERE user_uid = #{userUid} AND
+            DATE_FORMAT( create_time, '%Y-%m-%d' ) = #{day} ) )
+        </if>
+        )
+    </select>
+</mapper>

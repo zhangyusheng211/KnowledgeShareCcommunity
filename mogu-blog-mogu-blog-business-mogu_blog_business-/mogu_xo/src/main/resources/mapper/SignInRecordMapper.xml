@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.xo.mapper.SignInRecordMapper">
+
+
+    <select id="userSignRecordList" resultType="com.moxi.mogublog.commons.vo.SignInRecordVO">
+
+        SELECT days.DAY                                      as sign_date,
+               IF
+                   (t_sign_in_record.user_uid is null, 0, 1) AS is_sign_in
+        FROM (SELECT date_add(
+                             concat(#{dateKey}, "-02"),
+                             INTERVAL ( cast( help_topic_id AS signed INTEGER ) - DATE_FORMAT( DATE_SUB( concat(#{dateKey},
+                             "-02"), INTERVAL 1 DAY), '%d')) DAY
+                         ) DAY
+              FROM mysql.help_topic
+              WHERE help_topic_id &lt; DAY ( last_day( concat(#{dateKey}
+                  , "-02") ))
+        ORDER BY help_topic_id ) days
+        LEFT JOIN t_sign_in_record
+        ON t_sign_in_record.sign_date = days.DAY and t_sign_in_record.user_uid = #{userUid}
+    </select>
+    <select id="querySignContinuousDays" resultType="com.moxi.mogublog.commons.vo.SignInRecordVO">
+        select user_uid,
+               min_date,
+               max_date,
+               continuous_days
+        from (SELECT user_uid,
+                     min(sign_date) as min_date,
+                     max(sign_date) as max_date,
+                     count(*)       as continuous_days
+              FROM (SELECT user_uid,
+                           sign_date,
+                           DATEDIFF(sign_date, date( '1970-01-01' ) ) - rank() over ( PARTITION BY user_uid ORDER BY sign_date ASC ) AS
+        ranking
+                    FROM t_sign_in_record) a
+              GROUP BY user_uid,
+                       ranking) signCount
+        where user_uid = #{userUid}
+          and max_date = #{day}
+
+    </select>
+</mapper>

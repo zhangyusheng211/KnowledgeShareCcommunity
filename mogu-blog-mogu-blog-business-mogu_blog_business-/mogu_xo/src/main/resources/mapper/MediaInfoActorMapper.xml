@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.xo.mapper.MediaInfoActorMapper">
+
+    <resultMap type="MediaInfoActor" id="MediaInfoActorResult">
+        <result property="actorUid" column="actor_uid"/>
+        <result property="mediaInfoUid" column="media_info_uid"/>
+        <result property="name" column="name"/>
+        <result property="avatar" column="avatar"/>
+        <result property="label" column="label"/>
+    </resultMap>
+
+    <select id="selectMediaInfoActorList" parameterType="MediaInfoActor" resultMap="MediaInfoActorResult">
+        select ma.actor_uid, ma.media_info_uid, ma.type,a.name, a.avatar, a.label
+        from t_media_info_actor ma,t_media_actor a
+        <where>
+            ma.actor_uid = a.uid
+            <if test="actorUid != null and actorUid != ''">AND ma.actor_uid = #{actorUid}</if>
+            <if test="mediaInfoUid != null ">AND ma.media_info_uid = #{mediaInfoUid}</if>
+            <if test="type != null  and type != ''">AND ma.type = #{type}</if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,312 @@
+kind: pipeline # 定义对象类型，还有secret和signature两种类型
+type: docker # 定义流水线类型，还有kubernetes、exec、ssh等类型
+name: mogu-cicd # 定义流水线名称
+
+platform:
+#  os: linux
+#  arch: arm64
+
+steps: # 定义流水线执行步骤，这些步骤将顺序执行
+
+  - name: build-package # 流水线名称
+    image: maven:3.8.5-openjdk-8 # 定义创建容器的Docker镜像
+    volumes: # 将容器内目录挂载到宿主机，仓库需要开启Trusted设置
+      - name: maven-cache
+        path: /root/.m2 # 将maven下载依赖的目录挂载出来，防止重复下载
+      - name: maven-build
+        path: /usr/gitea/blogs/docker-compose # 将应用打包好的Jar和执行脚本挂载出来
+    commands: # 定义在Docker容器中执行的shell命令
+      #      - cd /usr/gitea/blogs/mogu_blog_v2
+      - mvn clean package -DskipTests=true # 应用打包命令
+      - rm -rf /usr/gitea/blogs/docker-compose/*
+
+      - echo $PWD
+      - echo $LS
+
+      # 拷贝打包后的jar文件
+      - cd /usr/gitea/blogs/docker-compose/
+      - mkdir mogu_gateway mogu_picture mogu_sms mogu_admin mogu_spider mogu_monitor mogu_search mogu_web mogu_wechat mogu_sentinel
+
+      - cp /drone/src/mogu_gateway/target/app.jar /usr/gitea/blogs/docker-compose/mogu_gateway/
+      - cp /drone/src/mogu_picture/target/app.jar /usr/gitea/blogs/docker-compose/mogu_picture/
+      - cp /drone/src/mogu_sms/target/app.jar /usr/gitea/blogs/docker-compose/mogu_sms/
+      - cp /drone/src/mogu_admin/target/app.jar /usr/gitea/blogs/docker-compose/mogu_admin/
+      - cp /drone/src/mogu_spider/target/app.jar /usr/gitea/blogs/docker-compose/mogu_spider/
+      - cp /drone/src/mogu_monitor/target/app.jar /usr/gitea/blogs/docker-compose/mogu_monitor/
+      - cp /drone/src/mogu_search/target/app.jar /usr/gitea/blogs/docker-compose/mogu_search/
+      - cp /drone/src/mogu_web/target/app.jar /usr/gitea/blogs/docker-compose/mogu_web/
+      - cp /drone/src/mogu_wechat/target/app.jar /usr/gitea/blogs/docker-compose/mogu_wechat/
+      - cp /drone/src/mogu_sentinel/target/app.jar /usr/gitea/blogs/docker-compose/mogu_sentinel/
+
+
+      # 拷贝打包后的Dockerfile文件
+      - cp /drone/src/mogu_gateway/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_gateway/
+      - cp /drone/src/mogu_picture/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_picture/
+      - cp /drone/src/mogu_sms/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_sms/
+      - cp /drone/src/mogu_admin/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_admin/
+      - cp /drone/src/mogu_spider/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_spider/
+      - cp /drone/src/mogu_monitor/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_monitor/
+      - cp /drone/src/mogu_search/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_search/
+      - cp /drone/src/mogu_web/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_web/
+      - cp /drone/src/mogu_wechat/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_wechat/
+      - cp /drone/src/mogu_sentinel/target/classes/Dockerfile /usr/gitea/blogs/docker-compose/mogu_sentinel/
+
+      #      - cp /drone/src/rm.sh /usr/gitea/blogs/docker-compose
+      - cp /drone/src/update.sh /usr/gitea/blogs/docker-compose
+
+
+  - name: restore-cache #缓存加快打包速度
+    image: drillster/drone-volume-cache
+    settings:
+      restore: true #会将文件从主机复制到容器
+      mount: #mount 列出需要缓存的文件夹
+        - ./.npm-cache
+        - /drone/src/vue_mogu_web/node_modules
+        - /drone/src/vue_mogu_admin/node_modules
+    volumes:
+      - name: cache
+        path: /cache
+
+  - name: vue-mogu-web-npm-install
+    image: node:14.18
+    commands:
+      - ls
+      - cd vue_mogu_web/
+#      - rm package-lock.json
+      - ls
+      #      - npm install --no-optional --verbose
+      #      - ls
+      #      - npm  i
+      - npm config set cache ./.npm-cache --global
+      - npm install --registry=https://registry.npm.taobao.org
+
+  - name: vue-mogu-admin-npm-install
+    image: node:14.18
+    commands:
+      - cd vue_mogu_admin/
+      #      - rm package-lock.json
+      - npm config set cache ./.npm-cache --global
+      - npm i node-sass --sass_binary_site=https://npm.taobao.org/mirrors/node-sass
+      - npm install --registry=https://registry.npm.taobao.org
+
+  - name: vue-mogu-web-npm-build
+    image: node:14.18
+    volumes: # 将容器内目录挂载到宿主机，仓库需要开启Trusted设置
+      - name: web-npm-build-dist
+        path: /usr/gitea/blogs/docker-compose/vue_mogu_web # 将应用打包好的Jar和执行脚本挂载出来
+    commands:
+      - cd vue_mogu_web/
+      - npm run build
+      - cd /drone/src/vue_mogu_web/dist
+      - ls
+      - cd /drone/src/vue_mogu_web/
+      - ls
+      - mkdir -p /usr/gitea/blogs/docker-compose/vue_mogu_web/dist
+      - cp -r /drone/src/vue_mogu_web/dist/. /usr/gitea/blogs/docker-compose/vue_mogu_web/dist
+      - cp /drone/src/vue_mogu_web/Dockerfile /usr/gitea/blogs/docker-compose/vue_mogu_web/
+
+  - name: vue-mogu-admin-npm-build
+    image: node:14.18
+    volumes: # 将容器内目录挂载到宿主机，仓库需要开启Trusted设置
+      - name: admin-npm-build-dist
+        path: /usr/gitea/blogs/docker-compose/vue_mogu_admin # 将应用打包好的Jar和执行脚本挂载出来
+    commands:
+      - cd vue_mogu_admin/
+      - npm run build
+      - cd /drone/src/vue_mogu_admin/
+      - mkdir -p /usr/gitea/blogs/docker-compose/vue_mogu_admin/dist
+      - ls
+      - cp -r /drone/src/vue_mogu_admin/dist/. /usr/gitea/blogs/docker-compose/vue_mogu_admin/dist
+      - cp /drone/src/vue_mogu_admin/Dockerfile /usr/gitea/blogs/docker-compose/vue_mogu_admin/
+
+  - name: rebuild-cache
+    image: drillster/drone-volume-cache
+    settings:
+      rebuild: true #会将文件从容器复制到主机
+      mount:
+        - ./.npm-cache
+        - /drone/src/vue_mogu_web/node_modules
+    volumes:
+      - name: cache
+        path: /cache
+  - name: admin-rebuild-cache
+    image: drillster/drone-volume-cache
+    settings:
+      rebuild: true #会将文件从容器复制到主机
+      mount:
+        - ./.npm-cache
+        - /drone/src/vue_mogu_admin/node_modules
+    volumes:
+      - name: cache
+        path: /cache
+
+
+  - name: docker-publish
+    image: registry.cn-shenzhen.aliyuncs.com/mogublog/docker_in_docker
+    volumes: # 将容器内目录挂载到宿主机，仓库需要开启Trusted设置
+      - name: maven-build
+        path: /usr/gitea/blogs/docker-compose # 将应用打包好的Jar和执行脚本挂载出来
+      - name: docker-in-docker
+        path: /var/run/docker.sock # 将应用打包好的Jar和执行脚本挂载出来
+
+    environment:
+      ALI_YUN_DOCKER_USERNAME:
+        from_secret: ALI_YUN_DOCKER_USERNAME
+      ALI_YUN_DOCKER_PASSWORD:
+        from_secret: ALI_YUN_DOCKER_PASSWORD
+
+    commands:
+
+      - echo $DRONE_BUILD_NUMBER
+      - echo $ALI_YUN_DOCKER_USERNAME
+      - echo $ALI_YUN_DOCKER_PASSWORD |  docker login --username=$ALI_YUN_DOCKER_USERNAME --password-stdin  registry.cn-shenzhen.aliyuncs.com
+
+      - docker --version
+      - docker images
+      - docker ps -a
+
+      - cd /usr/gitea/blogs/docker-compose/mogu_gateway
+      - ls
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_gateway:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_gateway:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_gateway:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_gateway:latest
+
+      - cd /usr/gitea/blogs/docker-compose/mogu_picture
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_picture:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_picture:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_picture:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_picture:latest
+        
+      - cd /usr/gitea/blogs/docker-compose/mogu_sms
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_sms:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_sms:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_sms:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_sms:latest
+
+      - cd /usr/gitea/blogs/docker-compose/mogu_admin
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_admin:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_admin:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_admin:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_admin:latest
+
+      - cd /usr/gitea/blogs/docker-compose/mogu_spider
+      - docker build -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_spider:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_spider:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_spider:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_spider:latest
+
+      - cd /usr/gitea/blogs/docker-compose/mogu_monitor
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_monitor:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_monitor:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_monitor:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_monitor:latest
+        
+      - cd /usr/gitea/blogs/docker-compose/mogu_search
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_search:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_search:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_search:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_search:latest
+
+      - cd /usr/gitea/blogs/docker-compose/mogu_web
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_web:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_web:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_web:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_web:latest
+        
+      - cd /usr/gitea/blogs/docker-compose/vue_mogu_web
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/vue_mogu_web:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/vue_mogu_web:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/vue_mogu_web:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/vue_mogu_web:latest
+
+      - cd /usr/gitea/blogs/docker-compose/vue_mogu_admin
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/vue_mogu_admin:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/vue_mogu_admin:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/vue_mogu_admin:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/vue_mogu_admin:latest
+
+      - cd /usr/gitea/blogs/docker-compose/mogu_wechat
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_wechat:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_wechat:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_wechat:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_wechat:latest
+
+
+      - cd /usr/gitea/blogs/docker-compose/mogu_sentinel
+      - docker build  -t registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_sentinel:latest .
+#      - docker tag registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_sentinel:1.0.$DRONE_BUILD_NUMBER registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_sentinel:lastest
+      - docker push registry.cn-shenzhen.aliyuncs.com/mogublog_business/mogu_sentinel:latest
+
+  - name: ssh
+    image: appleboy/drone-ssh
+    settings:
+      #      你服务器ip地址
+      host:
+        from_secret: TEST_SERVER_IP
+      #      服务器账号
+      username: root
+      #      密码登入写法(两种选一个)
+      password:
+        from_secret: TEST_SERVER_PASSWORD
+      #     key登入写法(两种选一个)
+#      key:
+#        from_secret: TEST_SERVER_IP
+      port: 22
+      script:
+#        - sudo mkdir -p  /usr/gitea/blogs/docker-compose
+#        - sudo chmod +x  /usr/gitea/blogs/docker-compose
+#        - cd /usr/gitea/blogs/docker-compose
+#        - sudo mkdir mogu_gateway mogu_picture mogu_sms mogu_spider mogu_monitor mogu_search mogu_web
+        - cd /www/wwwroot/data/maven/build/drone-study
+        - ls
+
+#        - sudo cp /www/wwwroot/data/maven/build/drone-study/mogu_gateway/app.jar /usr/gitea/blogs/docker-compose/mogu_gateway/
+#        - sudo cp /www/wwwroot/data/maven/build/drone-study/mogu_picture/app.jar /usr/gitea/blogs/docker-compose/mogu_picture/
+#        - sudo cp /www/wwwroot/data/maven/build/drone-study/mogu_sms/app.jar /usr/gitea/blogs/docker-compose/mogu_sms/
+#        - sudo cp /www/wwwroot/data/maven/build/drone-study/mogu_spider/app.jar /usr/gitea/blogs/docker-compose/mogu_spider/
+#        - sudo cp /www/wwwroot/data/maven/build/drone-study/mogu_monitor/app.jar /usr/gitea/blogs/docker-compose/mogu_monitor/
+#        - sudo cp /www/wwwroot/data/maven/build/drone-study/mogu_search/app.jar /usr/gitea/blogs/docker-compose/mogu_search/
+#        - sudo cp /www/wwwroot/data/maven/build/drone-study/mogu_web/app.jar /usr/gitea/blogs/docker-compose/mogu_web/
+#
+#        - sudo cp /www/wwwroot/data/maven/build/drone-study/docker-compose.yml /usr/giteaogn /blogs/docker-compose
+#        - cd /usr/gitea/blogs/docker-compose
+
+
+        # 这里注意第一次运行需要执行以下两条命令，这条命令是构建镜像的，第二次就不需要了
+        - chmod +x update.sh
+        - ./update.sh
+
+        # 删除空镜像
+#        - docker images | grep none | awk '{print $3}' | xargs docker rmi
+
+        # 这两条命令是启动项目的命令
+#        - cd /www/wwwroot/data/maven/build/drone-study
+#        - sudo docker-compose down
+#        - sudo docker-compose up -d
+
+#  - name: send-webhook
+#    image: plugins/webhook
+#    settings:
+#      username: myusername
+#      password: mypassword
+#      urls: https://gateway.moguit.cn/mogu-web/content/getBlogByUid?oid=127&isLazy=1
+#      content_type: application/json
+#      template: |
+#        {
+#          "owner": "{{ repo.owner }}",
+#          "repo": "{{ repo.name }}",
+#          "status": "{{ build.status }}",
+#        }
+
+volumes: # 定义流水线挂载目录，用于共享数据
+  - name: maven-build
+    host:
+      path: /www/wwwroot/data/maven/build/drone-study #jar包目录可以修改从宿主机中挂载的目录
+  - name: maven-cache
+    host:
+      path: /www/wwwroot/data/maven/cache
+
+  - name: web-npm-build-dist
+    host:
+      path: /www/wwwroot/data/maven/build/drone-study/vue_mogu_web # 前端wab的dist目录地址,可以修改从宿主机中挂载的目录
+  - name: cache
+    host:
+      path: /www/wwwroot/data/node/node_modules
+  - name: admin-npm-build-dist
+    host:
+      path: /www/wwwroot/data/maven/build/drone-study/vue_mogu_admin #  前端admin的dist目录地址,可以修改从宿主机中挂载的目录
+
+  - name: docker-in-docker
+    host:
+      path: /var/run/docker.sock
+

@@ -1,0 +1,13 @@
+DELETE http://47.106.230.203:9090/api/charts/mysql/5.7.23
+
+###
+DELETE http://47.106.230.203:9090/api/charts/redis/0.2.5
+
+###
+DELETE http://47.106.230.203:9090/api/charts/minio/1.0.0
+
+###
+DELETE http://47.106.230.203:9090/api/charts/nacos/0.1.0
+
+###
+DELETE http://47.106.230.203:9090/api/charts/vue-mogu-admin/1.0.0

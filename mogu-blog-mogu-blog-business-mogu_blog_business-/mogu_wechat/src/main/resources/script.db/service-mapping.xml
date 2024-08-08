@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--服务映射-->
+<services>
+    <schema-merge>
+        <oracle merge="false" target-schema="" />
+        <mysql merge="false" target-schema="" />
+        <sqlserver merge="false" target-schema="" />
+        <postgresql merge="false" target-schema="" />
+    </schema-merge>
+    <!-- name和filename: 对应本地文件名，默认与安装目标库名一致;  schema: 安装目标库名 env:使用对应的数据源，非必填，多数据源初始化时需要用到 -->
+    <service name="mogu_wechat" filename="mogu_wechat" schema="mogu_wechat" description="蘑菇微信服务"/>
+    <exclusion>
+    </exclusion>
+
+</services>

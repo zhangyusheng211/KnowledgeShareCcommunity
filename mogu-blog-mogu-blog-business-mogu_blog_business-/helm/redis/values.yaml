@@ -1,0 +1,92 @@
+# Default values for redis.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+fullnameOverride: ""
+
+image:
+  repository: redis
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env:
+
+configmap:
+  appendonly yes
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+
+## Redis Master Liveness Probe
+livenessProbe:
+  enabled: false
+  # initialDelaySeconds: 30
+  # periodSeconds: 10
+  # timeoutSeconds: 5
+  # successThreshold: 1
+  # failureThreshold: 5
+
+## Redis Master Readiness Probe
+readinessProbe:
+  enabled: false
+#   initialDelaySeconds: 5
+#   periodSeconds: 10
+#   timeoutSeconds: 1
+#   successThreshold: 1
+#   failureThreshold: 5
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 6379
+  nodePort: 30002
+
+  # externalIPs:
+  # - 192.168.12.175
+
+## Security context
+securityContext:
+  enabled: true
+  runAsUser: 999
+  fsGroup: 999
+
+logs:
+  enabled: false
+  parser: docker
+
+metrics:
+  enabled: false
+  image: oliver006/redis_exporter:latest
+  group: redis
+  path: /metrics
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    # cpu: 100m
+    memory: 2Gi
+  requests:
+    # cpu: 100m
+    memory: 2Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+persistence:
+  enabled: false
+  ## A manually managed Persistent Volume and Claim
+  ## Requires persistence.enabled: true
+  ## If defined, PVC must be created manually before volume will be bound
+  # existingClaim:
+  stoargeCalss:
+  # subPath:
+  accessMode: ReadWriteOnce
+  size: 256Mi

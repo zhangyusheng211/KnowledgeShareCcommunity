@@ -1,0 +1,7 @@
+apiVersion: v1
+appVersion: 5.7.23
+description: mysql
+name: mysql
+version: 5.7.23
+
+icon: https://labs.mysql.com/common/logos/mysql-logo.svg

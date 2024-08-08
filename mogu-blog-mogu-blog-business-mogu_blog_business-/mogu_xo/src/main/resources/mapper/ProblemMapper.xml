@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.xo.mapper.ProblemMapper">
+
+    <select id="queryPage" resultType="com.moxi.mogublog.commons.entity.Problem">
+        SELECT count_sort.sort_desc AS weight,
+        t_problem.*
+        FROM t_problem, (
+        <!--第二个表，用于标签排序-->
+        SELECT problem_uid, COUNT(tag_uid) AS sort_desc
+        FROM t_problem_tag_relation
+        WHERE
+        1 = 1
+        <if test="problemVO.tagUidList != null">AND
+            tag_uid IN
+            <foreach collection="problemVO.tagUidList" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY problem_uid
+        ) count_sort
+        WHERE t_problem.uid = count_sort.problem_uid
+
+        <if test="problemVO.keyword != null and problemVO.keyword != '' ">AND (t_problem.title like
+            '%${problemVO.keyword}%' or summary like '%${problemVO.keyword}%')
+        </if>
+        <if test="problemVO.isPublish != null and problemVO.isPublish != ''">AND t_problem.is_publish =
+            #{problemVO.isPublish}
+        </if>
+        <if test="problemVO.isSelection != null and problemVO.isSelection != ''">AND t_problem.is_selection =
+            #{problemVO.isSelection}
+        </if>
+        <if test="problemVO.auditStatus != null and problemVO.auditStatus != ''">AND t_problem.audit_status =
+            #{problemVO.auditStatus}
+        </if>
+        <if test="problemVO.openComment != null and problemVO.openComment != ''">AND t_problem.open_comment =
+            #{problemVO.openComment}
+        </if>
+        <if test="problemVO.hasAnswer != null and problemVO.hasAnswer != ''">AND t_problem.has_answer =
+            #{problemVO.hasAnswer}
+        </if>
+        <if test="problemVO.problemDifficulty != null ">AND t_problem.problem_difficulty =
+            #{problemVO.problemDifficulty}
+        </if>
+        <if test="problemVO.problemType != null ">AND t_problem.problem_type = #{problemVO.problemType}</if>
+        <if test="problemVO.oid != null ">AND t_problem.oid = #{problemVO.oid}</if>
+        <if test="problemVO.uid != null ">AND t_problem.uid = #{problemVO.uid}</if>
+        <if test="problemVO.userUid != null ">AND t_problem.user_uid = #{problemVO.userUid}</if>
+        <if test="problemVO.status != null ">AND t_problem.status = #{problemVO.status}</if>
+
+        <choose>
+            <when test="problemVO.orderByDescColumn != null and problemVO.orderByDescColumn != '' and problemVO.orderByDescColumn == 'random'">
+                order by RAND() desc
+            </when>
+            <when test="problemVO.orderByDescColumn != null and problemVO.orderByDescColumn != '' and problemVO.orderByDescColumn != 'random'">
+                order by t_problem.is_top DESC, ${problemVO.orderByDescColumn} desc
+            </when>
+            <when test="problemVO.orderByAscColumn != null and problemVO.orderByAscColumn != ''">
+                order by t_problem.is_top DESC, ${problemVO.orderByAscColumn} asc
+            </when>
+            <otherwise>
+                ORDER BY t_problem.is_top DESC, count_sort.sort_desc DESC
+            </otherwise>
+        </choose>
+
+    </select>
+
+
+    <insert id="addEditAnswer" parameterType="com.moxi.mogublog.commons.entity.GeneralEdit">
+        insert into t_general_edit
+        (uid, user_uid, biz_uid, reason, summary, old_content, content, audit_status, create_time, update_time)
+        values (REPLACE(UUID(), '-', ''),
+                #{generalEdit.userUid},
+                #{generalEdit.bizUid},
+                #{generalEdit.reason},
+                #{generalEdit.summary},
+                #{generalEdit.oldContent},
+                #{generalEdit.content},
+                #{generalEdit.auditStatus},
+                #{generalEdit.createTime},
+                #{generalEdit.updateTime})
+    </insert>
+
+
+</mapper>

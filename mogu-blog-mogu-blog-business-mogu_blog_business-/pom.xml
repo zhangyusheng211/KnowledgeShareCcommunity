@@ -1,0 +1,384 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.moxi</groupId>
+    <artifactId>mogu_blog</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>mogu_blog</name>
+    <description>a blog web</description>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.8</java.version>
+        <!--   项目版本     -->
+        <mogu.version>0.0.1-SNAPSHOT</mogu.version>
+        <!-- springboot 与 springcloud版本对应网址  https://start.spring.io/actuator/info      -->
+         <spring-boot.version>2.7.2</spring-boot.version>
+         <spring-cloud.version>2021.0.3</spring-cloud.version>
+        <!-- springboot 相关依赖版本-->
+        <!--        <spring-cloud.version>2020.0.6</spring-cloud.version>-->
+        <!--        <spring-boot.version>2.5.14</spring-boot.version>-->
+        <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
+        <alibaba.nacos.version>2.1.2</alibaba.nacos.version>
+        <alibaba.seata.version>1.5.1</alibaba.seata.version>
+
+        <spring-boot-admin.version>2.7.3</spring-boot-admin.version>
+        <!--        <spring-boot-admin.version>2.5.3</spring-boot-admin.version>-->
+        <spring.mock.version>2.0.8</spring.mock.version>
+        <sentinel.version>2.1.0.RELEASE</sentinel.version>
+
+        <swagger.version>3.0.0</swagger.version>
+        <knife4j.version>3.0.3</knife4j.version>
+        <swagger-annotations.version>1.6.2</swagger-annotations.version>
+
+        <servlet.api.version>3.0-alpha-1</servlet.api.version>
+        <net.sf.json.lib.version>2.4</net.sf.json.lib.version>
+        <alibaba.fastjson.version>1.2.83</alibaba.fastjson.version>
+        <jackson.mapper.asl.version>1.9.13</jackson.mapper.asl.version>
+        <javax.mail.version>1.4</javax.mail.version>
+        <aliyun.java.sdk.dysmsapi.version>1.0.0</aliyun.java.sdk.dysmsapi.version>
+        <aliyun.java.sdk.core.version>3.2.5</aliyun.java.sdk.core.version>
+        <mybatis.plus.boot.starter.version>3.4.2</mybatis.plus.boot.starter.version>
+        <jjwt.version>0.9.1</jjwt.version>
+        <druid.version>1.2.11</druid.version>
+        <google.code.gson.version>2.7</google.code.gson.version>
+        <hutool.version>5.8.5</hutool.version>
+        <log4j.version>1.2.17</log4j.version>
+        <eureka.version>1.2.3.RELEASE</eureka.version>
+        <qiniu.version>[7.7.0, 7.10.99]</qiniu.version>
+        <JustAuth.version>1.15.1</JustAuth.version>
+        <dyumogu.version>1.1.5</dyumogu.version>
+        <flexmark.version>0.62.2</flexmark.version>
+        <ip2region.version>2.6.5</ip2region.version>
+        <oshi.version>6.2.1</oshi.version>
+        <freemarker.version>2.3.28</freemarker.version>
+        <jaxb.version>2.3.0</jaxb.version>
+        <minio.version>7.1.4</minio.version>
+        <weixin-java.version>4.2.0</weixin-java.version>
+        <plumelog.version>3.5.3</plumelog.version>
+        <plumelog-trace.version>3.5.3</plumelog-trace.version>
+        <janino.version>3.0.6</janino.version>
+        <spring-boot-maven-plugin.version>2.3.0.RELEASE</spring-boot-maven-plugin.version>
+        <ijpay.version>2.8.1</ijpay.version>
+        <yungouos-pay.version>2.0.29</yungouos-pay.version>
+    </properties>
+
+
+    <modules>
+        <module>mogu_utils</module>
+        <module>mogu_base</module>
+        <module>mogu_xo</module>
+        <module>mogu_security</module>
+        <module>mogu_admin</module>
+        <module>mogu_web</module>
+        <module>mogu_picture</module>
+        <module>mogu_sms</module>
+        <module>mogu_search</module>
+        <module>mogu_monitor</module>
+        <module>mogu_gateway</module>
+        <module>mogu_zipkin</module>
+        <module>mogu_spider</module>
+        <module>mogu_commons</module>
+        <module>mogu_sentinel</module>
+        <module>mogu_wechat</module>
+        <module>mogu_pay</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- SpringCloud 微服务 -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- SpringCloud Alibaba 微服务 -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Alibaba Nacos 配置 -->
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${alibaba.nacos.version}</version>
+            </dependency>
+
+            <!-- Alibaba Seata 配置 -->
+            <dependency>
+                <groupId>io.seata</groupId>
+                <artifactId>seata-spring-boot-starter</artifactId>
+                <version>${alibaba.seata.version}</version>
+            </dependency>
+
+            <!-- SpringBoot 依赖配置 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+                    </exclusion>
+                </exclusions>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- SpringBoot Admin -->
+            <dependency>
+                <groupId>de.codecentric</groupId>
+                <artifactId>spring-boot-admin-starter-server</artifactId>
+                <version>${spring-boot-admin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.codecentric</groupId>
+                <artifactId>spring-boot-admin-starter-client</artifactId>
+                <version>${spring-boot-admin.version}</version>
+            </dependency>
+
+            <!-- 获取系统信息 -->
+            <dependency>
+                <groupId>com.github.oshi</groupId>
+                <artifactId>oshi-core</artifactId>
+                <version>${oshi.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>swagger-annotations</artifactId>
+                        <groupId>io.swagger</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!-- Swagger3依赖 -->
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-boot-starter</artifactId>
+                <version>${swagger.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.swagger</groupId>
+                        <artifactId>swagger-models</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+
+            <!-- Swagger 依赖配置 -->
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>${swagger-annotations.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${swagger-annotations.version}</version>
+            </dependency>
+
+
+            <!-- Hutool 工具类-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>servlet-api</artifactId>
+                <version>${servlet.api.version}</version>
+            </dependency>
+
+            <!-- fastjson -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${alibaba.fastjson.version}</version>
+            </dependency>
+
+            <!--  jackson -->
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-mapper-asl</artifactId>
+                <version>${jackson.mapper.asl.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.11.2</version>
+            </dependency>
+
+            <!--Markdown 转 Html-->
+            <dependency>
+                <groupId>com.vladsch.flexmark</groupId>
+                <artifactId>flexmark-all</artifactId>
+                <version>${flexmark.version}</version>
+            </dependency>
+
+            <!--通过ip获取城市信息-->
+            <!-- https://github.com/lionsoul2014/ip2region -->
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>${ip2region.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_utils</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_base</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_commons</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_security</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_xo</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_admin</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_web</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_picture</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_sms</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_search</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_monitor</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_gateway</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_spider</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.moxi</groupId>
+                <artifactId>mogu_pay</artifactId>
+                <version>${mogu.version}</version>
+            </dependency>
+
+<!--            <dependency>-->
+<!--                <groupId>com.moxi</groupId>-->
+<!--                <artifactId>mogu_sentinel</artifactId>-->
+<!--                <version>${mogu.version}</version>-->
+<!--            </dependency>-->
+
+
+            <!-- 序列化相关-->
+            <dependency>
+                <groupId>com.dyuproject.protostuff</groupId>
+                <artifactId>protostuff-core</artifactId>
+                <version>${dyumogu.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.dyuproject.protostuff</groupId>
+                <artifactId>protostuff-runtime</artifactId>
+                <version>${dyumogu.version}</version>
+            </dependency>
+
+            <!--日志收集框架 https://gitee.com/plumeorg/plumelog  -->
+            <dependency>
+                <groupId>com.plumelog</groupId>
+                <artifactId>plumelog-logback</artifactId>
+                <version>${plumelog.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.plumelog</groupId>
+                <artifactId>plumelog-trace</artifactId>
+                <version>${plumelog-trace.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.janino</groupId>
+                <artifactId>janino</artifactId>
+                <version>${janino.version}</version>
+            </dependency>
+
+            <!--支付框架 https://javen205.gitee.io/ijpay/guide/maven.html-->
+            <dependency>
+                <groupId>com.github.javen205</groupId>
+                <artifactId>IJPay-All</artifactId>
+                <version>${ijpay.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!--阿里云镜像源（因需要提交到GithubActions，会引起依赖下载过慢的问题）-->
+    <!--    <repositories>-->
+    <!--        <repository>-->
+    <!--            <id>nexus-aliyun</id>-->
+    <!--            <name>nexus-aliyun</name>-->
+    <!--            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>-->
+    <!--            <releases>-->
+    <!--                <enabled>true</enabled>-->
+    <!--            </releases>-->
+    <!--            <snapshots>-->
+    <!--                <enabled>false</enabled>-->
+    <!--            </snapshots>-->
+    <!--        </repository>-->
+    <!--    </repositories>-->
+
+</project>

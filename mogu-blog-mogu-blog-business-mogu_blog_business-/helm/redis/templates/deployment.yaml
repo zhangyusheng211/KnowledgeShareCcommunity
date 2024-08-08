@@ -1,0 +1,122 @@
+apiVersion: {{ include "app.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  labels:
+{{ include "service.labels.standard" . | indent 4 }}
+{{- if .Values.logs.enabled }}
+{{ include "service.logging.deployment.label" . | indent 4 }}
+{{- end }}
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+{{ include "service.labels.standard" . | indent 6 }}
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+{{ toYaml .Values.strategy | indent 4 }}
+  template:
+    metadata:
+      annotations:
+{{ include "service.monitoring.pod.annotations" . | indent 8 }}
+      labels:
+{{ include "service.labels.standard" . | indent 8 }}
+    spec:
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+      {{- end }}
+      containers:
+      - name: {{ .Release.Name }}
+        env:
+{{- range $name, $value := .Values.env }}
+{{- if not (empty $value) }}
+        - name: {{ $name | quote }}
+          value: {{ $value | quote }}
+{{- end }}
+{{- end }}
+{{- if .Values.configmap }}
+        args:
+        - /usr/local/etc/redis/redis.conf
+{{- end }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          exec:
+            command:
+            - redis-cli
+            - ping
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled}}
+        readinessProbe:
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          exec:
+            command:
+            - redis-cli
+            - ping
+        {{- end }}
+        ports:
+        - containerPort: 6379
+          protocol: TCP
+      {{- with .Values.resources }}
+        resources:
+{{ toYaml . | indent 10 }}
+      {{- end }}
+        volumeMounts:
+        - mountPath: /data
+          name: redis
+{{- if not (empty .Values.persistence.subPath) }}
+          subPath: {{ .Values.persistence.subPath }}
+{{- end }}
+{{- if .Values.configmap }}
+        - mountPath: /usr/local/etc/redis/redis.conf
+          name: config-volume
+          subPath: redis.conf
+{{- end }}
+{{- if .Values.metrics.enabled }}
+      - name: redis-exporter
+        image: {{ .Values.metrics.image }}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 9121
+{{- end }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      volumes:
+      - name: redis
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (include "redis.fullname" .) }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+{{- if .Values.configmap }}
+      - name: config-volume
+        configMap:
+          defaultMode: 420
+          name: {{ .Release.Name }}-cm
+{{- end }}

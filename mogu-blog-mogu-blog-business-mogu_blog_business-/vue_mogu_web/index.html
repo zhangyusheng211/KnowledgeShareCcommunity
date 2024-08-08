@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title><%= htmlWebpackPlugin.options.templateParameters.conf.meta.description %></title>
+  <meta name="keywords" content="<%= htmlWebpackPlugin.options.templateParameters.conf.meta.keywords %>">
+  <meta name="description" content="<%= htmlWebpackPlugin.options.templateParameters.conf.meta.description %>">
+  <link rel="canonical" href="<%= htmlWebpackPlugin.options.templateParameters.conf.meta.webSite %>">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="<%= htmlWebpackPlugin.options.templateParameters.conf.meta.description %>">
+  <meta property="og:description" content="<%= htmlWebpackPlugin.options.templateParameters.conf.meta.description %>">
+  <meta property="og:url" content="<%= htmlWebpackPlugin.options.templateParameters.conf.meta.webSite %>">
+  <meta property="og:site_name" content="<%= htmlWebpackPlugin.options.templateParameters.conf.title %>">
+  <meta name="twitter:description" content="<%= htmlWebpackPlugin.options.templateParameters.conf.meta.description %>">
+  <meta name="twitter:title" content="><%= htmlWebpackPlugin.options.templateParameters.conf.meta.description %>">
+  <script id='env'><%= htmlWebpackPlugin.options.env %></script>
+</head>
+<!--引入Element 和 Vue的CDN加速-->
+<!--<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.6/theme-chalk/index.css">-->
+<!--<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.5.17/vue.js"></script>-->
+<!--<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.6/index.js"></script>-->
+
+<link rel="stylesheet" href="https://oos.moguit.cn/cdn/element-ui.css">
+<script src="https://oos.moguit.cn/cdn/vue.js"></script>
+<script src="https://oos.moguit.cn/cdn/element-ui.js"></script>
+
+<!--引入showdown, markdown-html转换组件的CDN加速-->
+<!--github: https://github.com/showdownjs/showdown -->
+<!--<script src="https://cdn.bootcdn.net/ajax /libs/showdown/1.9.1/showdown.min.js"></script>-->
+<script src="https://oos.moguit.cn/cdn/showdown.min.js"></script>
+
+<!--引入shuodown, html-markdown转换组件的CDN加速-->
+<!--github: https://github.com/domchristie/turndown -->
+<!--<script src="https://cdn.bootcdn.net/ajax/libs/turndown/6.0.0/turndown.min.js"></script>-->
+<script src="https://oos.moguit.cn/cdn/turndown.min.js"></script>
+
+<!-- ⚠️生产环境请指定版本号，如 https://cdn.jsdelivr.net/npm/vditor@x.x.x/dist... -->
+<!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor/dist/index.css" />-->
+<!--<script src="https://cdn.jsdelivr.net/npm/vditor/dist/index.min.js" defer></script>-->
+<!--<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.9/css/share.min.css" />-->
+<link rel="stylesheet" href="https://oos.moguit.cn/cdn/vditor2.css" />
+<script src="https://oos.moguit.cn/cdn/vditor.js" defer></script>
+<link rel="stylesheet" href="https://oos.moguit.cn/cdn/share.min.css" />
+
+<!-- 引入 CKeditor-->
+<script src="https://cdn.bootcdn.net/ajax/libs/ckeditor/4.15.1/ckeditor.js"></script>
+<!--<script src="https://oos.moguit.cn/cdn/ckeditor.js"></script>-->
+<!--<script src="static/ckeditor/ckeditor.js"></script>-->
+
+<!--数学公式，解决不显示的问题：https://blog.csdn.net/CSDN_X_W/article/details/104562138-->
+<!--<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">-->
+<!--  MathJax.Hub.Config({-->
+<!--    tex2jax: {-->
+<!--      inlineMath: [['$','$'], ['\(','\)']],-->
+<!--      inlineMath: [['$', '$'], ['\\(', '\\)']], // 行内公式选择符-->
+<!--      displayMath: [['$$', '$$'], ['\\[', '\\]']], // 段内公式选择符-->
+<!--      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'a'] // 避开某些标签-->
+<!--    }-->
+<!--  });-->
+<!--</script>-->
+
+<!--引入代码复制插件-->
+<script src="https://oos.moguit.cn/cdn/clipboard.min.js"></script>
+
+<!--微信登录模块-->
+<script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"></script>
+
+<body>
+  <div id="app"></div>
+  <!-- built files will be auto injected -->
+</body>
+
+<!--引入代码高亮-->
+<!--开头这里的样式为默认的风格，可以根据自己的喜好更换风格-->
+<!--我的高亮效果是zenburn-->
+<!--<link href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.0.0-alpha1/styles/a11y-dark.min.css" rel="stylesheet">-->
+<!--<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.0.0-alpha1/highlight.min.js"></script>-->
+<link href="https://oos.moguit.cn/cdn/highlight.css" rel="stylesheet">
+<script src="https://oos.moguit.cn/cdn/highlight.js"></script>
+
+</html>
+
+

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.xo.mapper.ReportMapper">
+
+
+    <select id="queryList" resultType="com.moxi.mogublog.commons.vo.ReportVO">
+        SELECT t_report.uid,
+               t_report.report_type,
+               t_report.report_user_uid,
+               t_report.report_content_uid,
+               t_report.user_uid,
+               USER.nick_name       AS userName,
+               reportUser.nick_name AS reportUserName,
+               t_blog.title         as violationContent,
+               t_report.progress,
+               t_report.`status`,
+               t_report.create_time,
+               t_report.update_time,
+               t_report.violation_type,
+               t_report.content
+        FROM t_report
+                 INNER JOIN t_blog ON t_report.report_content_uid = t_blog.uid
+                 INNER JOIN t_user USER
+        ON USER.uid = t_report.user_uid
+            INNER JOIN t_user reportUser ON reportUser.uid = t_report.report_user_uid
+        WHERE
+            t_report.report_type = 'blog'
+        UNION ALL
+        SELECT t_report.uid,
+               t_report.report_type,
+               t_report.report_user_uid,
+               t_report.report_content_uid,
+               t_report.user_uid,
+               USER.nick_name       AS userName,
+               reportUser.nick_name AS reportUserName,
+               t_question.title     as violationContent,
+               t_report.progress,
+               t_report.`status`,
+               t_report.create_time,
+               t_report.update_time,
+               t_report.violation_type,
+               t_report.content
+        FROM t_report
+                 INNER JOIN t_question ON t_report.report_content_uid = t_question.uid
+                 INNER JOIN t_user USER
+        ON USER.uid = t_report.user_uid
+            INNER JOIN t_user reportUser ON reportUser.uid = t_report.report_user_uid
+        WHERE
+            t_report.report_type = 'question'
+        UNION ALL
+        SELECT t_report.uid,
+               t_report.report_type,
+               t_report.report_user_uid,
+               t_report.report_content_uid,
+               t_report.user_uid,
+               USER.nick_name       AS userName,
+               reportUser.nick_name AS reportUserName,
+               t_comment.content    as violationContent,
+               t_report.progress,
+               t_report.`status`,
+               t_report.create_time,
+               t_report.update_time,
+               t_report.violation_type,
+               t_report.content
+        FROM t_report
+                 INNER JOIN t_comment ON t_report.report_content_uid = t_comment.uid
+                 INNER JOIN t_user USER
+        ON USER.uid = t_report.user_uid
+            INNER JOIN t_user reportUser ON reportUser.uid = t_report.report_user_uid
+        WHERE
+            t_report.report_type = 'comment'
+        UNION ALL
+        SELECT t_report.uid,
+               t_report.report_type,
+               t_report.report_user_uid,
+               t_report.report_content_uid,
+               t_report.user_uid,
+               USER.nick_name       AS userName,
+               reportUser.nick_name AS reportUserName,
+               t_problem.title      as violationContent,
+               t_report.progress,
+               t_report.`status`,
+               t_report.create_time,
+               t_report.update_time,
+               t_report.violation_type,
+               t_report.content
+        FROM t_report
+                 INNER JOIN t_problem ON t_report.report_content_uid = t_problem.uid
+                 INNER JOIN t_user USER
+        ON USER.uid = t_report.user_uid
+            INNER JOIN t_user reportUser ON reportUser.uid = t_report.report_user_uid
+        WHERE
+            t_report.report_type = 'problem'
+    </select>
+    <select id="queryListByContent" resultType="com.moxi.mogublog.commons.vo.ReportVO">
+        SELECT * from (
+        SELECT
+        report_type,
+        CASE
+        report_type
+        WHEN 'blog' THEN
+        ( SELECT title FROM t_blog WHERE t_blog.uid = t_report.report_content_uid )
+        WHEN 'question' THEN
+        ( SELECT title FROM t_question WHERE t_question.uid = t_report.report_content_uid )
+        WHEN 'comment' THEN
+        ( SELECT content FROM t_comment WHERE t_comment.uid = t_report.report_content_uid ) ELSE NULL
+        END AS violationContent,
+        report_user_uid,
+        t_user.nick_name as reportUserName,
+        report_content_uid,
+        GROUP_CONCAT(user_uid) as user_uids,
+        COUNT(user_uid) as report_num
+        FROM
+        t_report LEFT JOIN t_user on t_user.uid = t_report.report_user_uid
+        GROUP BY t_report.report_user_uid, t_report.report_content_uid,t_report.report_type,t_user.nick_name
+        ) report
+
+        where 1 = 1
+        <if test="reportOption.keyword !=null and reportOption.keyword !=''">
+            and report.report_content like CONCAT("%",#{reportOption.keyword},"%")
+        </if>
+
+    </select>
+</mapper>

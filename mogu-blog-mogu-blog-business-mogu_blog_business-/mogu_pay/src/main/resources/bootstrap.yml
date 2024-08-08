@@ -1,0 +1,89 @@
+server:
+  port: ${SERVER_PORT:8610}
+
+# 需要启动 plumelog
+plumelog:
+  url: 127.0.0.1:8613
+  enable: false
+
+spring:
+  application:
+    name: mogu-pay
+  main:
+    allow-circular-references: true
+  cloud:
+    nacos:
+      username: ${SPRING_CLOUD_NACOS_USERNAME:nacos}
+      password: ${SPRING_CLOUD_NACOS_PASSWORD:nacos}
+      discovery:
+        server-addr: ${SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR:localhost:8848}
+        namespace: ${SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE:dev}
+      config:
+        server-addr: ${SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR:localhost:8848}
+        file-extension: ${SPRING_CLOUD_NACOS_CONFIG_FILE_EXTENSION:yaml}
+        #指定分组
+        group: ${SPRING_CLOUD_NACOS_CONFIG_GROUP:dev}
+        #指定命名空间
+        namespace: ${SPRING_CLOUD_NACOS_CONFIG_NAMESPACE:dev}
+
+    # 配置Sentinel流控
+    sentinel:
+      enabled: true # 自动化配置是否生效
+      eager: true   # 禁用控制台懒加载
+      transport:
+        dashboard: localhost:8612 # 控制台地址
+        client-ip: ${spring.cloud.client.ip-address} # 获取本机IP地址
+        port: 8719 # 启动该服务，会在应用程序的相应服务器上启动HTTP Server，并且该服务器将与Sentinel dashboard进行交互
+      # ============== ↓↓↓↓↓↓ 增加规则持久化配置到nacos ↓↓↓↓↓↓ ==============
+      datasource:
+        # 流控规则
+        flow:
+          nacos:
+            server-addr: ${spring.cloud.nacos.config.server-addr}
+            username: ${spring.cloud.nacos.username}
+            password: ${spring.cloud.nacos.password}
+            namespace: sentinel
+            group-id: sentinel
+            data-id: ${spring.application.name}-sentinel-flow-rules
+            # 规则类型：flow、degrade、param-flow、system、authority
+            rule-type: flow
+        # 熔断降级
+        degrade:
+          nacos:
+            server-addr: ${spring.cloud.nacos.config.server-addr}
+            username: ${spring.cloud.nacos.username}
+            password: ${spring.cloud.nacos.password}
+            namespace: sentinel
+            group-id: sentinel
+            data-id: ${spring.application.name}-sentinel-degrade-rules
+            rule-type: degrade
+        # 热点规则
+        param-flow:
+          nacos:
+            server-addr: ${spring.cloud.nacos.config.server-addr}
+            username: ${spring.cloud.nacos.username}
+            password: ${spring.cloud.nacos.password}
+            namespace: ${spring.cloud.nacos.config.namespace}
+            group-id: sentinel-group
+            data-id: ${spring.application.name}-sentinel-param-flow-rules
+            rule-type: param-flow
+        # 系统规则
+        system:
+          nacos:
+            server-addr: ${spring.cloud.nacos.config.server-addr}
+            username: ${spring.cloud.nacos.username}
+            password: ${spring.cloud.nacos.password}
+            namespace: ${spring.cloud.nacos.config.namespace}
+            group-id: sentinel-group
+            data-id: ${spring.application.name}-sentinel-system-rules
+            rule-type: system
+        # 授权规则
+        authority:
+          nacos:
+            server-addr: ${spring.cloud.nacos.config.server-addr}
+            username: ${spring.cloud.nacos.username}
+            password: ${spring.cloud.nacos.password}
+            namespace: ${spring.cloud.nacos.config.namespace}
+            group-id: sentinel-group
+            data-id: ${spring.application.name}-sentinel-authority-rules
+            rule-type: authority

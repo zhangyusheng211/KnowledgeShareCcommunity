@@ -1,0 +1,16 @@
+###############################################################################
+# Nacos分支的配置文件存储在nacos中【包括数据库配置、Redis配置、RabbitMQ等 ..】         #
+# 参考 http://www.moguit.cn/#/info?blogUid=8dc52bd61e36fa56cfc7699815375572   #
+##############################################################################
+spring:
+  profiles:
+    active: dev
+xfxh:
+  QPS: 100
+xf:
+  config:
+    hostUrl: https://spark-api.xf-yun.com/v2.1/chat
+    appId: 1fb9313c
+    apiSecret: NzE3MDZjNTAzYTJhMWU5MjVkMzBiOWEy
+    apiKey: e805181c34f416aee9035daab7320607
+    maxResponseTime: 30

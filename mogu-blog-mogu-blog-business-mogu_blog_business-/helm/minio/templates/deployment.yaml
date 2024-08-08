@@ -1,0 +1,104 @@
+apiVersion: {{ include "app.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  labels:
+{{ include "service.labels.standard" . | indent 4 }}
+{{- if .Values.logs.enabled }}
+{{ include "service.logging.deployment.label" . | indent 4 }}
+{{- end }}
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+{{ include "service.labels.standard" . | indent 6 }}
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+{{ toYaml .Values.strategy | indent 4 }}
+  template:
+    metadata:
+      annotations:
+{{ include "service.monitoring.pod.annotations" . | indent 8 }}
+      labels:
+{{ include "service.labels.standard" . | indent 8 }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        env:
+{{- range $name, $value := .Values.env }}
+{{- if not (empty $value) }}
+        - name: {{ $name | quote }}
+          value: {{ $value | quote }}
+{{- end }}
+{{- end }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+          - server
+          - /storage
+          - --config-dir=/config
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - >
+              nc -z localhost 9000
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled}}
+        readinessProbe:
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - >
+              nc -z localhost 9000
+        {{- end }}
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+      {{- with .Values.resources }}
+        resources:
+{{ toYaml . | indent 10 }}
+      {{- end }}
+        volumeMounts:
+        - mountPath: /storage
+          name: storage
+{{- if not (empty .Values.persistence.subPath) }}
+          subPath: {{ .Values.persistence.subPath }}
+{{- end }}
+        - mountPath: /config
+          name: config
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      volumes:
+      - name: storage
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (include "minio.fullname" .) }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      - name: config
+        emptyDir: {}

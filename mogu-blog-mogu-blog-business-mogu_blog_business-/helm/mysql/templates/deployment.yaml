@@ -1,0 +1,144 @@
+apiVersion: {{ include "app.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  labels:
+{{ include "service.labels.standard" . | indent 4 }}
+{{- if .Values.logs.enabled }}
+{{ include "service.logging.deployment.label" . | indent 4 }}
+{{- end }}
+  name: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+{{ include "service.labels.standard" . | indent 6 }}
+  strategy:
+{{ toYaml .Values.strategy | indent 4 }}
+  template:
+    metadata:
+      annotations:
+{{ include "service.monitoring.pod.annotations" . | indent 8 }}
+      labels:
+{{ include "service.labels.standard" . | indent 8 }}
+    spec:
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+      {{- end }}
+      containers:
+      - name: {{ .Release.Name }}
+{{- if not (empty .Values.args) }}
+        args:
+{{ toYaml .Values.args | indent 8 -}}
+{{- end }}
+        env:
+{{- range $name, $value := .Values.env }}
+{{- if not (empty $value) }}
+        - name: {{ $name | quote }}
+          value: {{ $value | quote }}
+{{- end }}
+{{- end }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        livenessProbe:
+          exec:
+            command:
+            {{- if .Values.mysqlAllowEmptyPassword }}
+            - mysqladmin
+            - ping
+            {{- else }}
+            - sh
+            - -c
+            - "mysqladmin ping -u root -p${MYSQL_ROOT_PASSWORD}"
+            {{- end }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+        readinessProbe:
+          exec:
+            command:
+            {{- if .Values.mysqlAllowEmptyPassword }}
+            - mysqladmin
+            - ping
+            {{- else }}
+            - sh
+            - -c
+            - "mysqladmin ping -u root -p${MYSQL_ROOT_PASSWORD}"
+            {{- end }}
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+        ports:
+        - containerPort: 3306
+          protocol: TCP
+      {{- with .Values.resources }}
+        resources:
+{{ toYaml . | indent 10 }}
+      {{- end }}
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysql
+{{- if not (empty .Values.persistence.subPath) }}
+          subPath: {{ .Values.persistence.subPath }}
+{{- end }}
+{{- if .Values.config }}
+        - mountPath: /etc/mysql/conf.d/my.cnf
+          name: config-volume
+          subPath: my.cnf
+{{- end }}
+          {{- if .Values.init }}
+        - mountPath: /docker-entrypoint-initdb.d/init.sql
+          name: init-volume
+          subPath: init.sql
+          {{- end }}
+{{- if .Values.metrics.enabled }}
+      - name: mysqld-exporter
+        image: {{ .Values.metrics.image }}
+        env:
+        - name: DATA_SOURCE_NAME
+          value: root:{{ .Values.env.MYSQL_ROOT_PASSWORD }}@(localhost:3306)/
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 9104
+{{- end }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      volumes:
+      - name: mysql
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (include "mysql.fullname" .) }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+{{- if .Values.config }}
+      - name: config-volume
+        configMap:
+          defaultMode: 420
+          name: {{ .Release.Name }}-cm
+{{- end }}
+{{- if .Values.init }}
+      - name: init-volume
+        configMap:
+          defaultMode: 420
+          name: {{ .Release.Name }}-cm
+{{- end }}

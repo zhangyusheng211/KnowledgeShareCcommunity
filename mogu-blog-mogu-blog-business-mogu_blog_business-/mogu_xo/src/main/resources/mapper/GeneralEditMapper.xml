@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.xo.mapper.GeneralEditMapper">
+
+
+    <insert id="generalEdit" parameterType="com.moxi.mogublog.commons.entity.GeneralEdit">
+        insert into t_general_edit
+        (uid, user_uid, biz_uid, biz_type, reason, summary, old_content, content, audit_status, create_time,
+         update_time)
+        values (REPLACE(UUID(), '-', ''),
+                #{generalEdit.userUid},
+                #{generalEdit.bizUid},
+                #{generalEdit.bizType},
+                #{generalEdit.reason},
+                #{generalEdit.summary},
+                #{generalEdit.oldContent},
+                #{generalEdit.content},
+                #{generalEdit.auditStatus},
+                #{generalEdit.createTime},
+                #{generalEdit.updateTime})
+    </insert>
+
+
+</mapper>

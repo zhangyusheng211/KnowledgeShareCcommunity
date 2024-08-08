@@ -1,0 +1,20 @@
+server:
+  port: ${SERVER_PORT:8606}
+
+spring:
+  application:
+    name: mogu-monitor
+  cloud:
+    nacos:
+      username: ${SPRING_CLOUD_NACOS_USERNAME:nacos}
+      password: ${SPRING_CLOUD_NACOS_PASSWORD:nacos}
+      discovery:
+        server-addr: ${SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR:localhost:8848}
+        namespace: ${SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE:dev}
+      config:
+        server-addr: ${SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR:localhost:8848}
+        file-extension: ${SPRING_CLOUD_NACOS_CONFIG_FILE_EXTENSION:yaml}
+        #指定分组
+        group: ${SPRING_CLOUD_NACOS_CONFIG_GROUP:dev}
+        #指定命名空间
+        namespace: ${SPRING_CLOUD_NACOS_CONFIG_NAMESPACE:dev}

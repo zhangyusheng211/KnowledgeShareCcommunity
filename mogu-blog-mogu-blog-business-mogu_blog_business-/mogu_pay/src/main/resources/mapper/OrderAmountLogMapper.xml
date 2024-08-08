@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.pay.mapper.OrderAmountLogMapper">
+
+    <select id="getUserAmount" resultType="java.lang.Long">
+        SELECT
+        sum( user_amount )
+        FROM
+        t_order_amount_log
+        WHERE 1 = 1
+        <if test="orderAmountLogVO.userUid != null and orderAmountLogVO.userUid != ''">AND user_uid =
+            #{orderAmountLogVO.userUid}
+        </if>
+        <if test="orderAmountLogVO.resourceUid != null and orderAmountLogVO.resourceUid != ''">AND resource_uid =
+            #{orderAmountLogVO.resourceUid}
+        </if>
+        <if test="orderAmountLogVO.operationType != null and orderAmountLogVO.operationType != ''">AND operation_type =
+            #{orderAmountLogVO.operationType}
+        </if>
+        <if test="orderAmountLogVO.status != null ">AND status = #{orderAmountLogVO.status}</if>
+
+    </select>
+</mapper>

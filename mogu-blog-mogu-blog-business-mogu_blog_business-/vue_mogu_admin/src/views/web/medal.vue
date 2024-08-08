@@ -1,0 +1,446 @@
+<template>
+    <div class="app-container">
+        <!-- 查询和其他操作 -->
+        <div class="filter-container" style="margin: 10px 0 10px 0;" v-permission="'/tag/getList'">
+            <el-input
+                clearable
+                @keyup.enter.native="handleFind"
+                class="filter-item"
+                style="width: 200px;"
+                v-model="queryParams.keyword"
+                placeholder="请输入勋章名"
+                size="small"
+            ></el-input>
+
+            <el-select
+                v-model="queryParams.medalClassifyUid"
+                style="width: 150px"
+                filterable
+                clearable
+                remote
+                reserve-keyword
+                placeholder="请输入勋章分类名"
+                size="small"
+                @keyup.enter.native="handleFind"
+            >
+                <el-option
+                    v-for="item in medalClassifyData"
+                    :key="item.uid"
+                    :label="item.name"
+                    :value="item.uid"
+                />
+            </el-select>
+
+
+            <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFind" size="small" style="margin-left: 10px;"
+                       v-permission="'/questionTag/getList'">查找
+            </el-button>
+            <el-button class="filter-item" type="primary" @click="handleAdd" icon="el-icon-edit" size="small"
+                       v-permission="'/questionTag/add'">添加勋章
+            </el-button>
+            <el-button class="filter-item" type="danger" @click="handleDeleteBatch" icon="el-icon-delete" size="small"
+                       v-permission="'/questionTag/deleteBatch'">删除选中
+            </el-button>
+        </div>
+
+        <el-table :data="tableData"
+                  style="width: 100%"
+                  @selection-change="handleSelectionChange"
+                  @sort-change="changeSort"
+                  :default-sort="{prop: 'sort', order: 'descending'}">
+            <el-table-column type="selection"></el-table-column>
+
+            <el-table-column label="序号" width="60" align="center">
+                <template slot-scope="scope">
+                    <span>{{ scope.$index + 1 }}</span>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="勋章UID" width="200" align="center">
+                <template slot-scope="scope">
+                    <span>{{ scope.row.uid }}</span>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="勋章图" width="140" align="center">
+                <template slot-scope="scope">
+                    <img
+                        v-if="scope.row.fileUrl"
+                        :src="scope.row.fileUrl"
+                        style="width: 100px; height: 100px"
+                    >
+                </template>
+            </el-table-column>
+
+
+            <el-table-column label="勋章名" width="150" align="center">
+                <template slot-scope="scope">
+                    <span>{{ scope.row.name }}</span>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="简介" width="200" align="center">
+                <template slot-scope="scope">
+                    <span>{{ scope.row.summary }}</span>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="勋章分类" width="150" align="center">
+                <template slot-scope="scope">
+                    <el-tag type="primary" v-if="scope.row.medalClassify">{{ scope.row.medalClassify.name }}</el-tag>
+                </template>
+            </el-table-column>
+
+            <el-table-column
+                :sort-by="['isPublish']"
+                label="发布状态"
+                width="100"
+                align="center"
+                prop="isPublish"
+                sortable="custom"
+            >
+                <template slot-scope="scope">
+                    <el-tag
+                        :type="scope.row.isPublish == '1' ? 'success' : 'primary'"
+                        disable-transitions
+                    >{{ scope.row.isPublish == "1" ? "已发布" : "已下架" }}
+                    </el-tag
+                    >
+                </template>
+            </el-table-column>
+
+            <el-table-column label="排序" width="100" align="center" prop="sort" sortable="custom"
+                             :sort-orders="['ascending', 'descending']">
+                <template slot-scope="scope">
+                    <el-tag type="warning">{{ scope.row.sort }}</el-tag>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="创建时间" width="160" align="center" prop="createTime" sortable="custom"
+                             :sort-by="['createTime']">
+                <template slot-scope="scope">
+                    <span>{{ scope.row.createTime }}</span>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="更新时间" width="160" align="center" prop="updateTime" sortable="custom"
+                             :sort-by="['updateTime']">
+                <template slot-scope="scope">
+                    <span>{{ scope.row.updateTime }}</span>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="状态" width="100" align="center">
+                <template slot-scope="scope">
+                    <template v-if="scope.row.status == 1">
+                        <span>正常</span>
+                    </template>
+                    <template v-if="scope.row.status == 2">
+                        <span>推荐</span>
+                    </template>
+                    <template v-if="scope.row.status == 0">
+                        <span>已删除</span>
+                    </template>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="操作" fixed="right" min-width="230">
+                <template slot-scope="scope">
+                    <el-button @click="handleEdit(scope.row)" type="primary" size="mini"
+                               v-permission="'/questionTag/edit'">编辑
+                    </el-button>
+                    <el-button @click="handleDelete(scope.row)" type="danger" size="mini"
+                               v-permission="'/questionTag/delete'">删除
+                    </el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+
+        <!--分页-->
+        <div class="block">
+            <el-pagination
+                @current-change="handleCurrentChange"
+                :current-page.sync="currentPage"
+                :page-size="pageSize"
+                layout="total, prev, pager, next, jumper"
+                :total="total"
+            ></el-pagination>
+        </div>
+
+        <!-- 添加或修改对话框 -->
+        <el-dialog :title="title" :visible.sync="dialogFormVisible">
+            <el-form :model="form" :rules="rules" ref="form">
+
+                <el-form-item label="勋章图" :label-width="formLabelWidth" prop="summary">
+                    <el-input v-model="form.fileUrl" auto-complete="off"></el-input>
+                </el-form-item>
+
+                <el-form-item label="勋章名" :label-width="formLabelWidth" prop="name">
+                    <el-input v-model="form.name" auto-complete="off"></el-input>
+                </el-form-item>
+
+                <el-form-item label="简介" :label-width="formLabelWidth" prop="summary">
+                    <el-input v-model="form.summary" auto-complete="off"></el-input>
+                </el-form-item>
+
+                <el-form-item
+                    :label-width="formLabelWidth"
+                    label="勋章分类"
+                    prop="medalClassifyUid"
+                >
+                    <el-select
+                        v-model="form.medalClassifyUid"
+                        size="small"
+                        placeholder="请选择"
+                        style="width: 200px"
+                        clearable
+                        filterable
+                    >
+                        <el-option
+                            v-for="item in medalClassifyData"
+                            :key="item.uid"
+                            :label="item.name"
+                            :value="item.uid"
+                        />
+                    </el-select>
+                </el-form-item>
+
+                <el-form-item label="是否发布" :label-width="formLabelWidth" prop="isPublish">
+                    <el-radio-group v-model="form.isPublish" size="small">
+                        <el-radio v-for="item in publishDictList" :key="item.uid" :label="item.dictValue" border>{{item.dictLabel}}</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+
+                <el-form-item label="排序" :label-width="formLabelWidth" prop="sort">
+                    <el-input v-model="form.sort" auto-complete="off"></el-input>
+                </el-form-item>
+
+            </el-form>
+
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submitForm">确 定</el-button>
+            </div>
+
+        </el-dialog>
+    </div>
+</template>
+
+<script>
+import {addMedal, deleteBatchMedal, editMedal, getMedalList} from "@/api/medal";
+import { getMedalClassifyList } from "@/api/medalClassify";
+import {getListByDictTypeList} from "@/api/sysDictData"
+export default {
+    data() {
+        return {
+            queryParams: {},
+            multipleSelection: [], //多选，用于批量删除
+            tableData: [],
+            keyword: "",
+            currentPage: 1,
+            pageSize: 10,
+            total: 0, //总数量
+            title: "增加勋章",
+            dialogFormVisible: false, //控制弹出框
+            formLabelWidth: "120px",
+            isEditForm: false,
+            orderByDescColumn: "", // 降序字段
+            orderByAscColumn: "", // 升序字段
+            publishDictList: [],
+            publishDefault: null,
+            medalClassifyData: [], // 分类
+            form: {
+                name: "",
+                summary: "",
+                sort: 0,
+            },
+            rules: {
+                name: [
+                    {required: true, message: '名称不能为空', trigger: 'blur'},
+                    {min: 1, max: 100, message: '长度在1到100个字符'},
+                ],
+                medalClassifyUid: [
+                    {required: true, message: '勋章分类不能为空', trigger: 'blur'},
+                ],
+                sort: [
+                    {required: true, message: '排序字段不能为空', trigger: 'blur'},
+                    {pattern: /^[0-9]\d*$/, message: '排序字段只能为自然数'},
+                ]
+            }
+        };
+    },
+    created() {
+        this.medalClassifyList()
+        this.getDictList()
+        this.medalList();
+    },
+    methods: {
+        // 从后台获取数据,重新排序
+        changeSort(val) {
+            // 根据当前排序重新获取后台数据,一般后台会需要一个排序的参数
+            if (val.order == "ascending") {
+                this.orderByAscColumn = val.prop
+                this.orderByDescColumn = ""
+            } else {
+                this.orderByAscColumn = ""
+                this.orderByDescColumn = val.prop
+            }
+            this.medalList()
+        },
+        medalList: function () {
+            let params = {};
+            params.keyword = this.queryParams.keyword;
+            params.medalClassifyUid = this.queryParams.medalClassifyUid;
+            params.currentPage = this.currentPage;
+            params.pageSize = this.pageSize;
+            params.orderByDescColumn = this.orderByDescColumn
+            params.orderByAscColumn = this.orderByAscColumn
+            getMedalList(params).then(response => {
+                this.tableData = response.data.records;
+                this.currentPage = response.data.current;
+                this.pageSize = response.data.size;
+                this.total = response.data.total;
+            });
+        },
+        medalClassifyList: function () {
+            const params = {}
+            params.pageSize = 500
+            params.currentPage = 1
+            params.isPublish = "1"
+            getMedalClassifyList(params).then((response) => {
+                if (response.code == this.$ECode.SUCCESS) {
+                    this.medalClassifyData = response.data.records
+                }
+            })
+        },
+        /**
+         * 字典查询
+         */
+        getDictList: function () {
+            let dictTypeList = ['sys_publish_status']
+            getListByDictTypeList(dictTypeList).then(response => {
+                if (response.code == this.$ECode.SUCCESS) {
+                    let dictMap = response.data;
+                    this.publishDictList = dictMap.sys_publish_status.list
+                    if (dictMap.sys_publish_status.defaultValue) {
+                        this.publishDefault = dictMap.sys_publish_status.defaultValue;
+                    }
+                }
+            });
+        },
+        getFormObject: function () {
+            let formObject = {
+                uid: null,
+                name: null,
+                summary: null,
+                isPublish: this.publishDefault, // 是否发布
+                sort: 0
+            };
+            return formObject;
+        },
+        handleFind: function () {
+            this.currentPage = 1
+            this.medalList();
+        },
+        handleAdd: function () {
+            this.title = "增加勋章"
+            this.dialogFormVisible = true;
+            this.form = this.getFormObject();
+            this.isEditForm = false;
+        },
+        handleEdit: function (row) {
+            this.title = "编辑勋章";
+            this.dialogFormVisible = true;
+            this.isEditForm = true;
+            this.form = row;
+        },
+        handleDelete: function (row) {
+            let that = this;
+            this.$confirm("此操作将把勋章删除, 是否继续?", "提示", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning"
+            })
+                .then(() => {
+                    var params = [];
+                    params.push(row);
+                    deleteBatchMedal(params).then(response => {
+                        if (response.code == this.$ECode.SUCCESS) {
+                            this.$commonUtil.message.success(response.message)
+                        } else {
+                            this.$commonUtil.message.error(response.message)
+                        }
+                        that.medalList();
+                    });
+                })
+                .catch(() => {
+                    this.$commonUtil.message.info("已取消删除")
+                });
+        },
+        handleDeleteBatch: function () {
+            let that = this;
+            if (that.multipleSelection.length <= 0) {
+                this.$commonUtil.message.error("请先选中需要删除的内容")
+                return;
+            }
+            this.$confirm("此操作将把选中的勋章删除, 是否继续?", "提示", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning"
+            })
+                .then(() => {
+                    deleteBatchMedal(that.multipleSelection).then(response => {
+                        if (response.code == this.$ECode.SUCCESS) {
+                            this.$commonUtil.message.success(response.message)
+                        } else {
+                            this.$commonUtil.message.error(response.message)
+                        }
+                        that.medalList();
+                    });
+                })
+                .catch(() => {
+                    this.$commonUtil.message.info("已取消删除")
+                });
+        },
+        handleCurrentChange: function (val) {
+            this.currentPage = val;
+            this.medalList();
+        },
+        submitForm: function () {
+            this.$refs.form.validate((valid) => {
+                if (!valid) {
+                    console.log('校验失败')
+                    return;
+                } else {
+                    if (this.isEditForm) {
+                        editMedal(this.form).then(response => {
+                            if (response.code == this.$ECode.SUCCESS) {
+                                this.$commonUtil.message.success(response.message)
+                                this.dialogFormVisible = false;
+                                this.medalList();
+                            } else {
+                                this.$commonUtil.message.error(response.message)
+                            }
+                        });
+                    } else {
+                        addMedal(this.form).then(response => {
+                            console.log(response);
+                            if (response.code == this.$ECode.SUCCESS) {
+                                this.$commonUtil.message.success(response.message)
+                                this.dialogFormVisible = false;
+                                this.medalList();
+                            } else {
+                                this.$commonUtil.message.error(response.message)
+                            }
+                        });
+                    }
+                }
+            })
+        },
+        // 改变多选
+        handleSelectionChange(val) {
+            this.multipleSelection = val;
+        }
+    }
+};
+</script>

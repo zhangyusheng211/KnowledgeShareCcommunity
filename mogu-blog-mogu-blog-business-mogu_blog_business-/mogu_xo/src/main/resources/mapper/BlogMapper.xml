@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.xo.mapper.BlogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.moxi.mogublog.commons.entity.Blog">
+        <id column="oid" property="oid"/>
+        <result column="uid" property="uid"/>
+        <result column="title" property="title"/>
+        <result column="summary" property="summary"/>
+        <result column="content" property="content"/>
+        <result column="taguid" property="taguid"/>
+        <result column="clickcount" property="clickcount"/>
+        <result column="collectcount" property="collectcount"/>
+        <result column="photo" property="photo"/>
+        <result column="status" property="status"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        oid
+        , uid, title, summary, content, taguid, clickcount, collectcount, photo, status, createtime, updatetime
+    </sql>
+    <select id="queryPage" resultType="com.moxi.mogublog.commons.entity.Blog">
+        SELECT
+        t_blog.uid,
+        t_blog.title,
+        t_blog.summary,
+        t_blog.content,
+        t_blog.tag_uid,
+        t_blog.click_count,
+        t_blog.collect_count,
+        t_blog.file_uid,
+        t_blog.`status`,
+        t_blog.create_time,
+        t_blog.update_time,
+        t_blog.admin_uid,
+        t_blog.is_original,
+        if(t_blog.is_original= 1 and t_blog.article_source = 1 ,t_user.nick_name,t_blog.author) as author,
+        t_blog.articles_part,
+        t_blog.blog_sort_uid,
+        t_blog.`level`,
+        t_blog.is_publish,
+        t_blog.sort,
+        t_blog.open_comment,
+        t_blog.type,
+        t_blog.outside_link,
+        t_blog.oid,
+        t_blog.user_uid,
+        t_blog.article_source,
+        t_blog.audit_status,
+        t_blog.audit_name,
+        t_blog.reject_reason,
+        t_blog.audit_time,
+        t_blog.open_loading_valid,
+        t_blog.is_vip,
+        t_blog.is_only_subject_show,
+        t_blog.visit_auth,
+        t_blog.visit_auth_extra,
+        t_blog.price,
+        t_blog.pay_type,
+        t_blog.loading_area,
+        t_blog.is_top,
+        t_blog.is_copy
+        FROM
+        t_blog
+        LEFT JOIN t_user on t_blog.user_uid = t_user.uid
+        where t_blog.status = 1
+        <if test="blog.keyword!=null and blog.keyword!=''">
+            and t_blog.title like CONCAT('%', #{blog.keyword}, '%')
+        </if>
+
+        <if test="blog.tagUid!=null and blog.tagUid!=''">
+            and t_blog.tag_uid like CONCAT('%', #{blog.tagUid}, '%')
+        </if>
+
+        <if test="blog.blogSortUid!=null and blog.blogSortUid!=''">
+            and t_blog.blog_sort_uid like CONCAT('%', #{blog.blogSortUid}, '%')
+        </if>
+
+        <if test="blog.level!=null and blog.level!=''">
+            and t_blog.level = #{blog.level}
+        </if>
+
+        <if test="blog.visitAuth !=null">
+            and t_blog.visit_auth = #{blog.visitAuth}
+        </if>
+
+        <if test="blog.isPublish!=null and blog.isPublish!=''">
+            and t_blog.is_publish = #{blog.isPublish}
+        </if>
+
+        <if test="blog.isOriginal!=null and blog.isOriginal!=''">
+            and t_blog.is_original = #{blog.isOriginal}
+        </if>
+
+        <if test="blog.auditStatus!=null and blog.auditStatus!=''">
+            and t_blog.audit_status = #{blog.auditStatus}
+        </if>
+
+        <if test="blog.openComment != null and blog.openComment!=''">
+            and t_blog.open_comment = #{blog.openComment}
+        </if>
+
+        <if test="blog.openLoadingValid != null and blog.openLoadingValid!=''">
+            and t_blog.open_loading_valid = #{blog.openLoadingValid}
+        </if>
+
+        <if test="blog.type != null and blog.type!=''">
+            and t_blog.type = #{blog.type}
+        </if>
+
+        <if test="blog.levelKeyword!=null and blog.levelKeyword!=''">
+            and t_blog.level = #{blog.levelKeyword}
+        </if>
+
+        <if test="blog.type!=null and blog.type!=''">
+            and t_blog.type = #{blog.type}
+        </if>
+        <if test="blog.articleSource!=null and blog.articleSource!=''">
+            and t_blog.article_source = #{blog.articleSource}
+        </if>
+
+        <if test="blog.userUid!=null and blog.userUid!=''">
+            and t_blog.user_uid = #{blog.userUid}
+            and t_blog.article_Source = '1'
+        </if>
+
+        <if test="blog.adminUid!=null and blog.adminUid!=''">
+            and t_blog.admin_uid = #{blog.adminUid}
+            and t_blog.article_Source = '0'
+        </if>
+        <if test="blog.isVip != null and blog.isVip !=''">
+            and t_blog.is_vip = '0'
+        </if>
+        <if test="blog.visitAuth != null and blog.visitAuth !=''">
+            and t_blog.visit_auth = #{blog.visitAuth}
+        </if>
+        <if test="blog.payType != null and blog.payType !=''">
+            and t_blog.pay_type = #{blog.payType}
+        </if>
+        <if test="blog.loadingArea != null and blog.loadingArea !=''">
+            and t_blog.loading_area = #{blog.loadingArea}
+        </if>
+
+        <if test="blog.isOnlySubjectShow != null and blog.isOnlySubjectShow !=''">
+            and t_blog.is_only_subject_show = #{blog.isOnlySubjectShow}
+        </if>
+
+        <choose>
+            <when test="blog.orderBy !=null and blog.orderBy !=''">
+                order by t_blog.${blog.orderBy}
+            </when>
+
+            <otherwise>
+                <if test="blog.useSort ==0">
+                    order by t_blog.create_time desc
+                </if>
+                <if test="blog.useSort !=0">
+                    order by t_blog.sort desc
+                </if>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getUsersBolgCountByUserId" resultType="java.util.Map"
+            parameterType="com.moxi.mogublog.commons.entity.User">
+        select distinct
+        t_blog.user_uid as userid,
+        count(*) as usercount
+        from t_blog where 1= 1
+        <if test="users!=null and users.size()>0">
+            and t_blog.user_uid in
+            <foreach item="item" index="index" collection="users" open="(" separator="," close=")">
+                #{item.uid}
+            </foreach>
+        </if>
+        and article_Source = '1'
+        and status = '1'
+        and audit_status = '2'
+        and is_publish = '1'
+        group by t_blog.user_uid
+    </select>
+
+    <!--查询连续发表博客的天数-->
+    <select id="getPublishContinuousDays" resultType="com.moxi.mogublog.commons.vo.ContinuousDayVO">
+        SELECT user_uid,
+               min_date,
+               max_date,
+               continuous_days
+        FROM (SELECT user_uid,
+                     MIN(create_time) AS min_date,
+                     MAX(create_time) AS max_date,
+                     COUNT(*)         AS continuous_days
+              FROM (SELECT user_uid,
+                           create_time,
+
+                           DATEDIFF(create_time, DATE( '1970-01-01' ) ) - RANK() OVER ( PARTITION BY user_uid ORDER BY create_time ASC ) AS
+        ranking
+                    FROM (SELECT DISTINCT user_uid, DATE_FORMAT(create_time, "%Y-%m-%d") AS create_time
+                          FROM t_blog) AS b) a
+              GROUP BY user_uid,
+                       ranking) signCount
+        where user_uid = #{userUid}
+          and max_date = #{day}
+
+    </select>
+
+</mapper>

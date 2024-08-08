@@ -1,0 +1,39 @@
+#spring settings
+server:
+  port: 8612
+  servlet:
+    encoding:
+      force: true
+      charset: UTF-8
+      enabled: true
+
+    session:
+      cookie:
+        name: sentinel_dashboard_cookie
+
+
+auth:
+  filter:
+    exclude-urls: /,/auth/login,/auth/logout,/registry/machine,/version
+    exclude-url-suffixes: htm,html,js,css,map,ico,ttf,woff,png
+  # 配置Sentinel默认账号和IMA
+  username: sentinel
+  password: sentinel
+
+
+sentinel:
+  dashboard:
+    version: @project.version@
+
+nacos:
+  server-addr: localhost:8848
+  namespace: sentinel
+  group: sentinel
+  username: nacos
+  password: nacos
+  config:
+    bootstrap:
+      enable: true
+      log-enable: true
+    data-id: flyaway
+    server-addr: localhost:8848

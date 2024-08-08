@@ -1,0 +1,213 @@
+{
+	"easycom": {
+		"^tn-(.*)": "@/tuniao-ui/components/tn-$1/tn-$1.vue"
+	},
+	//pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [{
+			"path": "pages/index",
+			"style": {
+				"mp-weixin": {
+					"disableScroll": true
+				},
+				"app-plus": {
+					"bounce": "none"
+				},
+				"mp-alipay": {
+					"allowsBounceVertical": "NO"
+				},
+				"mp-baidu": {
+					"disableScroll": true
+				}
+			}
+		},
+		{
+			"path": "pages/moment/moment",
+			"style": {
+				"navigationBarTitleText": "动态",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/moment/details",
+			"style": {
+				"navigationBarTitleText": "动态详情",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/article/details",
+			"style": {
+				"navigationBarTitleText": "文章详情",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/mine",
+			"style": {
+				"navigationBarTitleText": "我的页面",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/set",
+			"style": {
+				"navigationBarTitleText": "更新用户信息",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/signed",
+			"style": {
+				"navigationBarTitleText": "每日签到",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/credits_detail",
+			"style": {
+				"navigationBarTitleText": "积分明细",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/rank/ranking",
+			"style": {
+				"navigationBarTitleText": "积分排行",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/user_center",
+			"style": {
+				"navigationBarTitleText": "用户中心",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/search/search",
+			"style": {
+				"navigationBarTitleText": "内容搜索",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/bind",
+			"style": {
+				"navigationBarTitleText": "账户绑定",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/my_article",
+			"style": {
+				"navigationBarTitleText": "我的文章",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/my_moment",
+			"style": {
+				"navigationBarTitleText": "我的动态",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/my_collect",
+			"style": {
+				"navigationBarTitleText": "我的收藏",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/problem/detail",
+			"style": {
+				"navigationBarTitleText": "面经详情",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/problem/problem",
+			"style": {
+				"navigationBarTitleText": "面经首页",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/activity/activity",
+			"style": {
+				"navigationBarTitleText": "抽奖页面",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/moment/create",
+			"style": {
+				"navigationBarTitleText": "创建动态",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/article/create_article",
+			"style": {
+				"navigationBarTitleText": "创建文章",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/subject/subject",
+			"style": {
+				"navigationBarTitleText": "专栏",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/subject/subjectDetail",
+			"style": {
+				"navigationBarTitleText": "专栏详情",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/resource/resource",
+			"style": {
+				"navigationBarTitleText": "资源",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/resource/resourceDetail",
+			"style": {
+				"navigationBarTitleText": "资源详情",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/media/media",
+			"style": {
+				"navigationBarTitleText": "课程",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/media/mediaDetail",
+			"style": {
+				"navigationBarTitleText": "课程详情",
+				"enablePullDownRefresh": false
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "陌溪教你学编程",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
+}

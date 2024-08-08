@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.xo.mapper.UserWatchMapper">
+
+    <select id="getUserWatchCountByUserId" resultType="java.util.Map"
+            parameterType="com.moxi.mogublog.commons.entity.User">
+        select
+        t_user_watch.user_uid as userid,
+        count(*) as usercount
+        from t_user_watch where 1= 1
+        <if test="users!=null and users.size()>0">
+            and t_user_watch.user_uid in
+            <foreach item="item" index="index" collection="users" open="(" separator="," close=")">
+                #{item.uid}
+            </foreach>
+        </if>
+        and status = '1'
+        group by t_user_watch.user_uid
+    </select>
+
+</mapper>

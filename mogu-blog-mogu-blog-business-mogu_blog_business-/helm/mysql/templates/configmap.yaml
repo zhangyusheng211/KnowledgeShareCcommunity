@@ -1,0 +1,17 @@
+{{ if .Values.config }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-cm
+data:
+  my.cnf: |
+    [mysqld]
+{{- range $name, $value := .Values.config }}
+{{- if not (empty $value) }}
+{{ printf "%v = %v" $name $value | indent 4}}
+{{- end }}
+{{- end }}
+    {{- if .Values.init}}
+  init.sql: {{.Values.init |quote }}
+  {{- end}}
+  {{- end}}

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moxi.mogublog.xo.mapper.UserMomentMapper">
+
+    <select id="getUserMomentCountByUserId" resultType="java.util.Map"
+            parameterType="com.moxi.mogublog.commons.entity.User">
+        select t_user_moment.user_uid as userid, count(*) as usercount from t_user_moment
+        where 1 = 1
+        <if test="users != null and users.size() > 0">
+            and t_user_moment.user_uid in
+            <foreach item="item" index="index" collection="users" open="(" close=")" separator=",">
+                #{item.uid}
+            </foreach>
+        </if>
+        and t_user_moment.status = '1'
+        group by t_user_moment.user_uid
+    </select>
+
+    <select id="list" resultType="com.moxi.mogublog.xo.dto.UserMomentDto">
+        select * from (
+        SELECT
+        t_user_moment.*,
+        ifnull( ( SELECT COUNT( 1 ) AS count FROM
+        t_user_praise_record
+        WHERE resource_uid = t_user_moment.uid AND resource_type = 4 AND praise_type = 1 GROUP BY resource_uid ),
+        0) AS praiseCount,
+        ifnull( ( SELECT COUNT( 1 ) AS count FROM
+        t_user_praise_record
+        WHERE resource_uid = t_user_moment.uid AND resource_type = 4 AND praise_type = 2 GROUP BY resource_uid ),
+        0 ) AS opposeCount,
+        ifnull(( SELECT COUNT( 1 ) AS count FROM
+        t_comment WHERE blog_uid = t_user_moment.uid AND source = 'USER_MOMENT' and `status` = '1' and to_uid is null
+        and to_user_uid is null GROUP BY blog_uid ),
+        0 ) AS replyCount,
+        ifnull( ( SELECT COUNT( 1 ) AS count FROM
+        t_collect
+        WHERE biz_uid = t_user_moment.uid and `status` = '1' and collect_type = '4' GROUP BY biz_uid ),
+        0 ) AS collectCount
+        FROM
+        t_user_moment
+        ) moment
+        where 1 =1
+        <if test="userMomentVO.keyword!=null and userMomentVO.keyword!=''">
+            and moment.content like concat('%',#{userMomentVO.keyword},'%')
+        </if>
+        <if test="userMomentVO.topicUids!=null">
+            and moment.topic_uids = #{userMomentVO.topicUids}
+        </if>
+        <if test="userMomentVO.isPublish!=null">
+            and moment.is_publish = #{userMomentVO.isPublish}
+        </if>
+        <if test="userMomentVO.uid!=null">
+            and moment.uid = #{userMomentVO.uid}
+        </if>
+
+        <!--过滤用户 针对于 关注的用户-->
+        <if test="users.size >0">
+            <foreach collection="users" item="userUid" close=")" separator="," open=" and moment.user_uid in ( ">
+                #{userUid}
+            </foreach>
+        </if>
+
+
+        <if test="userMomentVO.isNew">
+            <!--降序排序-->
+            order by moment.create_time desc
+        </if>
+
+
+        <if test="userMomentVo.isHot">
+            <!--动态因为无法计算互动率 所以根据点赞数  回复数  动态认同比率 进行排序
+                同时避免时间过久 热度榜在前 新增时间降序排序
+                暂定如此 后续使用算法排序（没想好）
+            -->
+            order by praiseCount desc ,replyCount desc,praiseCount/(praiseCount+opposeCount) desc,moment.create_time
+            desc
+        </if>
+
+    </select>
+
+
+</mapper>
